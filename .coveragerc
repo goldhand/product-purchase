@@ -1,0 +1,3 @@
+[run]
+include = product_purchase/*
+omit = *migrations*
