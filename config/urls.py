@@ -21,7 +21,7 @@ urlpatterns = [
 
     # Your stuff: custom urls includes go here
     url(r'^payments/', include('djstripe.urls', namespace="djstripe")),
-    url(r'^charges/', include('purchases.urls', namespace="charges")),
+    url(r'^purchases/', include('purchases.urls', namespace="purchases")),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -24,7 +24,7 @@
         <div class="col-xs-{{ 12|djdiv:product_count|floatformat }}">
       {% endwith %}
             <form
-                  action="{% url 'charges:single_charge' %}" class="djstripe-charge"  
+                  action="{% url 'purchases:single_charge' %}" class="djstripe-charge"  
                   data-key="{{ STRIPE_PUBLIC_KEY }}"
                   data-amount="{{ product.price }}"
                   data-name="{{ product.name }}"

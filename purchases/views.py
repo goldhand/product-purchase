@@ -20,8 +20,8 @@ class SingleChargeFormView(LoginRequiredMixin, FormValidMessageMixin, Subscripti
 
     form_class = ChargeForm
     template_name = "pages/purchase.html"
-    success_url = reverse_lazy("charges:purchase_list")
-    form_valid_message = "You successfully purchased this!"
+    success_url = reverse_lazy("purchases:purchase_list")
+    form_valid_message = "Purchase successful. Download your product below."
 
     def post(self, request, *args, **kwargs):
         """
@@ -58,14 +58,18 @@ class SingleChargeFormView(LoginRequiredMixin, FormValidMessageMixin, Subscripti
         return context
 
 
-class ProductPurchaseListView(ListView):
+class ProductPurchaseListView(LoginRequiredMixin, ListView):
     '''
     List purchases
     '''
     model = ProductPurchase
 
+    def get_queryset(self, **kwargs):
+        qs = super(ProductPurchaseListView, self).get_queryset(**kwargs)
+        return qs.filter(charge__customer__subscriber=self.request.user)
 
-class ProductPurchaseDetailView(DetailView):
+
+class ProductPurchaseDetailView(LoginRequiredMixin, DetailView):
     '''
     Returns an object resource and decrements the downloads counter
     '''
@@ -76,9 +80,13 @@ class ProductPurchaseDetailView(DetailView):
         obj = self.get_object()
         if obj.product.resource and obj.downloads > 0:
             # if the product has a downloadable resource then render it and decrease download counter
-            pdf = open(obj.product.resource.path, 'r')
-            response = HttpResponse(pdf.read(), content_type='text/pdf')
-            response['Content-Disposition'] = 'attachment; filename="{}.pdf"'.format(obj.product.name)
+            file_type = obj.product.resource.name.split('.')[-1]
+            response = HttpResponse(
+                obj.product.resource.read(),
+                content_type='text/{}'.format(file_type))
+            response['Content-Disposition'] = 'attachment; \
+                filename="{name}.{type}"'.format(name=obj.product.name,
+                                                 type=file_type)
             obj.decrement_downloads()
             return response
         if obj.downloads == 0:
@@ -86,12 +94,12 @@ class ProductPurchaseDetailView(DetailView):
                            'You have run out of downloads for {name}. \
                            Purchase {name} again to download more.'
                            .format(name=obj.product.name))
-            return HttpResponseRedirect(reverse_lazy('charges:single_charge'))
+            return HttpResponseRedirect(reverse_lazy('purchases:single_charge'))
         return super(ProductPurchaseDetailView,
                      self).render_to_response(context, **response_kwargs)
 
 
-class ProductCreateView(CreateView):
+class ProductCreateView(LoginRequiredMixin, CreateView):
     model = Product
     fields = ['name', 'price', 'resource', 'downloads']
-    success_url = reverse_lazy('charges:single_charge')
+    success_url = reverse_lazy('purchases:single_charge')

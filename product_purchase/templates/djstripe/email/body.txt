@@ -11,17 +11,12 @@ CUSTOMER: {% block customer_name %}{{ charge.customer.subscriber }}{% endblock %
 
 DETAILS
 -------
-
 {% for purchase in charge.productpurchase_set.all %}
 {{ purchase.product.name }} - ${{ purchase.product.price|floatformat:2 }}
 {% empty %}
 {{ charge.customer.current_subscription.plan_display }} - ${{ charge.amount|floatformat:2 }}
 {% endfor %}
 
-View your past purchases: {% url 'charges:purchase_list' %}
-
-
-{% for purchase in charge.productpurchase_set.all %}
 TOTAL: ${{ charge.amount|floatformat:2 }} USD
 PAID BY CREDIT CARD: -${{ charge.amount|floatformat:2 }}
 ========================================================
@@ -30,7 +25,7 @@ PAID BY CREDIT CARD: -${{ charge.amount|floatformat:2 }}
 {% endif %}{% endif %}
 
 Please contact us with any questions regarding this invoice.
-
+Hooray!
 ---
 Your {{ site.name }} Team
 {{ protocol }}://{{ site.domain }}
