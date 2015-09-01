@@ -7,8 +7,11 @@ Local settings
 - Add Django Debug Toolbar
 - Add django-extensions as app
 '''
+import os
+
 
 from .common import *  # noqa
+
 
 # DEBUG
 # ------------------------------------------------------------------------------
@@ -59,3 +62,26 @@ INSTALLED_APPS += ('django_extensions', )
 TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 
 # Your local stuff: Below this line define 3rd party library settings
+STRIPE_PUBLIC_KEY = os.environ.get("STRIPE_PUBLIC_KEY", "pk_test_4XMRbU6H6Jf5B2TXmICnvXS7")
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "sk_test_4XMRnH3aMfrhHN1nZO2uzcDE")
+
+DJSTRIPE_PLANS = {
+    "monthly": {
+        "stripe_plan_id": "pro-monthly",
+        "name": "Web App Pro ($24.99/month)",
+        "description": "The monthly subscription plan to WebApp",
+        "price": 2499,  # $24.99
+        "currency": "usd",
+        "interval": "month"
+    },
+    "yearly": {
+        "stripe_plan_id": "pro-yearly",
+        "name": "Web App Pro ($199/year)",
+        "description": "The annual subscription plan to WebApp",
+        "price": 19900,  # $199.00
+        "currency": "usd",
+        "interval": "year"
+    }
+}
+
+

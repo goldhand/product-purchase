@@ -39,3 +39,5 @@ redis>=2.10.0
 
 
 # Your custom requirements go here
+dj-stripe>=0.6.0
+

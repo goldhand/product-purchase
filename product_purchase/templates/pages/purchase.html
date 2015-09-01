@@ -1,0 +1,83 @@
+{% extends "djstripe/base.html" %}
+{% load static djstripe_tags %}
+
+{% block title %}Choose a product{% endblock title %}
+
+{% block content %}
+{{ block.super }}
+<ul class="breadcrumb">
+  <li><a href="{% url 'djstripe:account' %}">Home</a></li>
+  <li class="active">product</li>
+</ul>
+<h2>Choose a product</h2>
+
+{% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+{% endif %}
+{% if view.error %}
+    <div class="alert alert-error">{{ view.error }}</div>
+{% endif %}
+
+<div class="row">
+    {% for product in products %}
+      {% with product_count=products|length %}
+        <div class="col-xs-{{ 12|djdiv:product_count|floatformat }}">
+      {% endwith %}
+            <form
+                  action="{% url 'charges:single_charge' %}" class="djstripe-charge"  
+                  data-key="{{ STRIPE_PUBLIC_KEY }}"
+                  data-amount="{{ product.price }}"
+                  data-name="{{ product.name }}"
+                  data-description="{{ product.description }}"
+            method="POST">
+
+               
+                {% csrf_token %}
+                <input type="hidden" name="product" value="{{ product.id }}" />
+                <input name="stripe_token" type="hidden" /> 
+
+                <button
+                 type="submit" class="btn btn-primary">
+                  {% with image=plan.image|default:"img/default-plan-image.png" %}
+                    <img src="{% static image %}" class="img-thumbnail" />
+                  {% endwith %}
+                  <h3>{{ product.name }}</h3>
+                  <p>$ {{ product.price }}</p>
+                </button>
+            </form>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock content %}
+
+{% block javascript %}
+{{ block.super }}
+<script src="https://checkout.stripe.com/v2/checkout.js"></script>
+<script text="text/javascript">
+    $(function() {
+        
+        $('body').on("click", '.djstripe-charge button[type=submit]', function(e) {
+          e.preventDefault();
+          // retrieve current $(".djstripe-charge")
+          var $form = $(e.target).parents('form'),
+              token = function(res) {
+                $form.find("input[name=stripe_token]").val(res.id);
+                $("button[type=submit]").attr("disabled", "true");
+                $('#in-progress').modal({"keyboard": false})
+                $('.progress-bar').animate({width:'+=100%'}, 2000);
+                $form.trigger("submit");
+              };
+          StripeCheckout.open({
+            key:         "{{ STRIPE_PUBLIC_KEY }}",
+            name:        'Payment Method',
+            panelLabel:  'Add Payment Method',
+            token:       token
+          });
+
+          return false;
+        });
+
+    });
+</script>
+{% endblock javascript %}

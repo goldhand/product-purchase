@@ -39,12 +39,14 @@ THIRD_PARTY_APPS = (
     'allauth',  # registration
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
+    'djstripe',  # payments
 )
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
     'product_purchase.users',  # custom users app
     # Your stuff: custom apps go here
+    'purchases',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<ul>
+{% for obj in object_list %}
+  <li><a href="{% url 'charges:purchase_detail' obj.key %}">{{ obj.product.name }} <span class="badge">{{ obj.downloads }}</a></li>
+{% endfor %}
+</ul>
+
+{% endblock content %}

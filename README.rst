@@ -1,7 +1,7 @@
 product_purchase
 ==============================
 
-Simple paywall in django for digital products (like pdfs)
+Simple stripe paywall in django for digital products (like pdfs)
 
 
 LICENSE: BSD
