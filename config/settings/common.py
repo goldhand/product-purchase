@@ -257,3 +257,4 @@ LOGGING = {
 }
 
 # Your common stuff: Below this line define 3rd party library settings
+DJSTRIPE_SUBSCRIBER_MODEL_REQUEST_CALLBACK = lambda request: request.user

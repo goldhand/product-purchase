@@ -34,7 +34,9 @@ class SingleChargeFormView(LoginRequiredMixin, FormValidMessageMixin, Subscripti
             try:
                 customer, created = Customer.get_or_create(
                     subscriber=subscriber_request_callback(self.request))
-                customer.update_card(self.request.POST.get("stripe_token"))
+                update_card = self.request.POST.get("stripe_token", None)
+                if update_card:
+                    customer.update_card(update_card)
                 product = Product.objects.get(id=form.cleaned_data['product'])
                 charge = customer.charge(product.price, send_receipt=False)  # don't send reciept until product purhcase is created
                 # create a product_purchase model that is associated with the charge
@@ -69,9 +71,10 @@ class ProductPurchaseListView(LoginRequiredMixin, ListView):
         return qs.filter(charge__customer__subscriber=self.request.user)
 
 
-class ProductPurchaseDetailView(LoginRequiredMixin, DetailView):
+class ProductPurchaseDetailView(DetailView):
     '''
     Returns an object resource and decrements the downloads counter
+    Secured only by the key so users can share download links
     '''
     model = ProductPurchase
     slug_field = 'key'

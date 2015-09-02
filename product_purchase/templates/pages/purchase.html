@@ -22,29 +22,42 @@
     {% for product in products %}
       {% with product_count=products|length %}
         <div class="col-xs-{{ 12|djdiv:product_count|floatformat }}">
-      {% endwith %}
-            <form
-                  action="{% url 'purchases:single_charge' %}" class="djstripe-charge"  
+        {% endwith %}
+          <div class="card">
+            {% with image=product.image|default:"img/default-plan-image.png" %}
+              <img src="{% static image %}" class="card-img-top" />
+            {% endwith %}
+            <div class="card-block">
+              <h3 class="card-title">{{ product.name }}</h3>
+              <p class="card-text">$ {{ product.price }}</p>
+            </div>
+              <form
+                {% if not customer.can_charge %}
+                    action="{% url 'purchases:single_charge' %}" class="djstripe-charge"  
+                  {% else %}
+                  action="{% url 'purchases:single_charge' %}" class="djstripe-can-charge"
+                  data-stripe-key="{{ STRIPE_PUBLIC_KEY }}"
+                  {% endif %}
                   data-key="{{ STRIPE_PUBLIC_KEY }}"
                   data-amount="{{ product.price }}"
                   data-name="{{ product.name }}"
                   data-description="{{ product.description }}"
-            method="POST">
-
-               
-                {% csrf_token %}
-                <input type="hidden" name="product" value="{{ product.id }}" />
-                <input name="stripe_token" type="hidden" /> 
-
-                <button
-                 type="submit" class="btn btn-primary">
-                  {% with image=plan.image|default:"img/default-plan-image.png" %}
-                    <img src="{% static image %}" class="img-thumbnail" />
-                  {% endwith %}
-                  <h3>{{ product.name }}</h3>
-                  <p>$ {{ product.price }}</p>
-                </button>
-            </form>
+              method="POST">
+                 
+                  {% csrf_token %}
+                  <input type="hidden" name="product" value="{{ product.id }}" />
+                  <input name="stripe_token" type="hidden" /> 
+                  <div class="card-block">
+                    <a href="#"
+                     class="card-link buy">
+                      Buy
+                    </a>
+                    {% if customer.can_charge %}
+                      <a href="#" class="card-link buy-now">Buy Now</a>
+                    {% endif %}
+                  </div>
+              </form>
+          </div>
         </div>
     {% endfor %}
 </div>
@@ -57,7 +70,7 @@
 <script text="text/javascript">
     $(function() {
         
-        $('body').on("click", '.djstripe-charge button[type=submit]', function(e) {
+        $('body').on("click", '.djstripe-charge a.buy', function(e) {
           e.preventDefault();
           // retrieve current $(".djstripe-charge")
           var $form = $(e.target).parents('form'),
@@ -71,12 +84,41 @@
           StripeCheckout.open({
             key:         "{{ STRIPE_PUBLIC_KEY }}",
             name:        'Payment Method',
-            panelLabel:  'Add Payment Method',
+            panelLabel:  'Complete Purchase',
             token:       token
           });
 
           return false;
         });
+        $('body').on("click", '.djstripe-can-charge a.buy', function(e) {
+          e.preventDefault();
+          // retrieve current $(".djstripe-charge")
+              var $form = $(e.target).parents('form'),
+              token = function(res) {
+                $("button[type=submit]").attr("disabled", "true");
+                $('#in-progress').modal({"keyboard": false})
+                $('.progress-bar').animate({width:'+=100%'}, 2000);
+                $form.trigger("submit");
+              };
+              StripeCheckout.open({
+                key:         "{{ STRIPE_PUBLIC_KEY }}",
+                name:        'Payment Method',
+                panelLabel:  'Complete Purchase',
+                {% if request.user.is_authenticated %}
+                email:       '{{ request.user.email }}',
+                {% endif %}
+                token:       token
+              });
+            });
+        $('body').on("click", '.djstripe-can-charge a.buy-now', function(e) {
+          e.preventDefault();
+
+              $("button[type=submit]").attr("disabled", "true");
+              $('#in-progress').modal({"keyboard": false})
+              $('.progress-bar').animate({width:'+=100%'}, 2000);
+              var $form = $(e.target).parents('form');
+              $form.trigger("submit");
+          });
 
     });
 </script>
